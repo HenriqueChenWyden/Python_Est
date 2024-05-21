@@ -1,0 +1,86 @@
+const logger = require('../../logger');
+const EVENTS = require('../../EVENTS');
+const preparePlugins = require('./_preparePlugins');
+
+// eslint-disable-next-line no-underscore-dangle
+async function _initializeAccount(account, userUnsafePlugins) {
+  const self = account;
+
+  // Add default derivation paths
+  account.addDefaultPaths();
+
+  // Issue additional derivation paths in case we have transactions in the store
+  // at the moment of initialization (from persistent storage)
+  account.createPathsForTransactions();
+
+  // Add block headers from storage into the SPV chain if there are any
+  const chainStore = self.storage.getDefaultChainStore();
+  const { blockHeaders, lastSyncedHeaderHeight } = chainStore.state;
+  if (!self.offlineMode) {
+    const { blockHeadersProvider } = self.transport.client;
+    const firstHeaderHeight = lastSyncedHeaderHeight - blockHeaders.length + 1;
+    await blockHeadersProvider.initializeChainWith(blockHeaders, firstHeaderHeight);
+  }
+
+  // We run faster in offlineMode to speed up the process when less happens.
+  const readinessIntervalTime = (account.offlineMode) ? 50 : 200;
+  // TODO: perform rejection with a timeout
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Will sort and inject plugins.
+      await preparePlugins(account, userUnsafePlugins);
+
+      self.emit(EVENTS.STARTED, { type: EVENTS.STARTED, payload: null });
+
+      const sendReady = () => {
+        if (!self.state.isReady) {
+          self.emit(EVENTS.READY, { type: EVENTS.READY, payload: null });
+          self.state.isReady = true;
+        }
+      };
+      const sendInitialized = () => {
+        if (!self.state.isInitialized) {
+          self.emit(EVENTS.INITIALIZED, { type: EVENTS.INITIALIZED, payload: null });
+          logger.debug(`Initialized with ${Object.keys(account.plugins.watchers).length} plugins`);
+          self.state.isInitialized = true;
+        }
+      };
+
+      let readyPlugins = 0;
+      // eslint-disable-next-line no-param-reassign,consistent-return
+      account.readinessInterval = setInterval(() => {
+        const watchedPlugins = Object.keys(account.plugins.watchers);
+        watchedPlugins.forEach((pluginName) => {
+          const watchedPlugin = account.plugins.watchers[pluginName];
+          if (watchedPlugin.ready === true && !watchedPlugin.announced) {
+            readyPlugins += 1;
+            watchedPlugin.announced = true;
+            logger.debug(`Initialized ${pluginName} - ${readyPlugins}/${watchedPlugins.length} plugins`);
+          }
+        });
+        if (readyPlugins === watchedPlugins.length) {
+          // At this stage, our worker are initialized
+          sendInitialized();
+
+          // If both of the plugins are present
+          // We need to tweak it a little bit to have BIP44 ensuring address
+          // while SyncWorker fetch'em on network
+          clearInterval(self.readinessInterval);
+
+          if (!account.injectDefaultPlugins) {
+            sendReady();
+            return resolve(true);
+          }
+
+          sendReady();
+          return resolve(true);
+        }
+      }, readinessIntervalTime);
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
+module.exports = _initializeAccount;

@@ -1,0 +1,13 @@
+export declare function load(urlString: string, context: {
+    format: string | null | undefined;
+    importAssertions?: {
+        type?: 'json';
+    };
+    importAttributes?: {
+        type?: 'json';
+    };
+}, nextLoad: typeof load): Promise<{
+    format: string;
+    source?: string;
+    shortCircuit: boolean;
+}>;
