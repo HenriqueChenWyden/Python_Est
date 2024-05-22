@@ -70,5 +70,4 @@ app.layout = html.Div(children=[
 
 # Run the app
 if __name__ == '__main__':
-    app.run(debug=False)
-    server = app.server
+    app.run_server(host='0.0.0.0', port='8000')
