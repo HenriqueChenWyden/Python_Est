@@ -13,7 +13,7 @@ app = Dash(external_stylesheets=external_stylesheets)
 # App layout
 app.layout = html.Div(children=[
     html.Div(children='Projeto de Estatística - Steam',
-             style={'textAlign': 'center', 'color': 'blue', 'fontSize': 30}),
+             style={'textAlign': 'center', 'color': 'white', 'fontSize': 30, 'backgroundColor': 'grey'}),
     
     html.Div(className='row', style={'backgroundColor': 'grey'}, children=[
         html.Div(className='six columns', children=[
@@ -35,7 +35,8 @@ app.layout = html.Div(children=[
                     'xanchor': 'center',
                     'yanchor': 'top'
                 },
-                title_font=dict(size=24)  # Adjust the font size here
+                title_font=dict(size=24),  # Adjust the font size here
+                paper_bgcolor='rgba(0,0,0,0)',  # Change the background color here
             )),
         ]),
     ]),
@@ -49,8 +50,9 @@ app.layout = html.Div(children=[
                     'xanchor': 'center',
                     'yanchor': 'top'
                 },
-                title_font=dict(size=24)  # Adjust the font size here
-            )), 
+                title_font=dict(size=24),  # Adjust the font size here
+                paper_bgcolor='rgba(0,0,0,0)',  # Change the background color here
+            )),
         ]),
         # Adicione aqui o seu quarto gráfico
         html.Div(className='six columns',style={'backgroundColor': 'grey'}, children=[
@@ -62,7 +64,8 @@ app.layout = html.Div(children=[
                     'xanchor': 'center',
                     'yanchor': 'top'
                 },
-                title_font=dict(size=24)  # Adjust the font size here
+                title_font=dict(size=24),  # Adjust the font size here
+                paper_bgcolor='rgba(0,0,0,0)',  # Change the background color here
             )),
         ]),
     ]),
