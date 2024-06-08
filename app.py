@@ -12,7 +12,7 @@ app = Dash(external_stylesheets=external_stylesheets)
 
 # App layout
 app.layout = html.Div(children=[
-    html.Div(children='Projeto de Estatística - Steam',
+    html.Div(children='Dados de Jogos da Steam',
              style={'textAlign': 'center', 'color': 'white', 'fontSize': 30, 'backgroundColor': 'grey'}),
     
     html.Div(className='row', style={'backgroundColor': 'grey'}, children=[
